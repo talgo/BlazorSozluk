@@ -1,4 +1,6 @@
 ﻿using BlazorSozluk.Api.Application.Features.Commands.User.ConfirmEmail;
+using BlazorSozluk.Api.Application.Features.Queries.GetEntryDetail;
+using BlazorSozluk.Api.Application.Features.Queries.GetUserDetail;
 using BlazorSozluk.Common.Events.User;
 using BlazorSozluk.Common.Models.RequestModels;
 using MediatR;
@@ -11,18 +13,32 @@ namespace BlazorSozluk.Api.WebApi.Controllers
     [ApiController]
     public class UserController : BaseController
     {
-        private readonly IMediator _mediator;
+        private readonly IMediator mediator;
 
         public UserController(IMediator mediator)
         {
-            _mediator = mediator;
+            this.mediator = mediator;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(Guid id)
+        {
+            var result = await mediator.Send(new GetUserDetailQuery(id));
+            return Ok(result);
+        }
+
+        [HttpGet("UserName/{username}")]
+        public async Task<IActionResult> GetByUserName(string userName)
+        {
+            var result = await mediator.Send(new GetUserDetailQuery(Guid.Empty, userName));
+            return Ok(result);
         }
 
         [HttpPost]
         [Route("Login")]
-        public async Task<IActionResult> Login([FromBody]LoginUserCommand command)
+        public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
-            var res = await _mediator.Send(command);
+            var res = await mediator.Send(command);
 
             return Ok(res);
         }
@@ -30,7 +46,7 @@ namespace BlazorSozluk.Api.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
         {
-            var guid = await _mediator.Send(command);
+            var guid = await mediator.Send(command);
 
             return Ok(guid);
         }
@@ -39,7 +55,7 @@ namespace BlazorSozluk.Api.WebApi.Controllers
         [Route("Update")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserCommand command)
         {
-            var guid = await _mediator.Send(command);
+            var guid = await mediator.Send(command);
 
             return Ok(guid);
         }
@@ -48,7 +64,7 @@ namespace BlazorSozluk.Api.WebApi.Controllers
         [Route("Confirm")]
         public async Task<IActionResult> ConfirmEmail(Guid Id)
         {
-            var guid = await _mediator.Send(new ConfirmEmailCommand() { ConfirmationId = Id});
+            var guid = await mediator.Send(new ConfirmEmailCommand() { ConfirmationId = Id });
 
             return Ok(guid);
         }
@@ -60,7 +76,7 @@ namespace BlazorSozluk.Api.WebApi.Controllers
             if (!command.UserId.HasValue)
                 command.UserId = UserId;
 
-            var guid = await _mediator.Send(command);
+            var guid = await mediator.Send(command);
 
             return Ok(guid);
         }
